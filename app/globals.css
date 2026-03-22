@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+/* Global Resets & Typography */
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+selection {
+    background-color: #F1F5F9;
+    color: #0F172A;
+}
