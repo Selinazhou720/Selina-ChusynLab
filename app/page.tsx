@@ -683,9 +683,10 @@ export default function Page() {
                 </div>
             </section>
 
-            {/* Footer Style (minimalist) */}
             <footer className="relative z-10 text-center py-20 bg-white border-t border-slate-50">
-                <p className="text-[10px] text-slate-300 font-bold tracking-widest uppercase">/ All work by Selina Zhou /</p>
+                <p className="text-[16px] text-slate-400 font-medium tracking-[0.02em] font-sans">
+                    © 2026 Selina (周楚珊) ｜ Here, for now
+                </p>
             </footer>
 
             {/* global Selection Style */}
