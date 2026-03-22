@@ -685,7 +685,7 @@ export default function Page() {
 
             <footer className="relative z-10 text-center py-20 bg-white border-t border-slate-50">
                 <p className="text-[16px] text-slate-400 font-medium tracking-[0.02em] font-sans">
-                    © 2026 Selina (周楚珊) ｜ Here, for now
+                    © 2026 Selina (周楚珊) ｜ To win the world.
                 </p>
             </footer>
 
