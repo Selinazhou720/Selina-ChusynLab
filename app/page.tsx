@@ -248,11 +248,17 @@ export default function Page() {
     // ── Auto-Loop Footprints logic ──────────────────────────────────────────────
     useEffect(() => {
         if (isHovered) return;
-        const timer = setInterval(() => {
+        
+        let timeout: ReturnType<typeof setTimeout>;
+        const isDestination = activeIndex === MAP_NETWORK_DATA.length - 1;
+        const delay = isDestination ? 4500 : 3000; // 4.5s at Australia (1.5s anim + 3s pause)
+
+        timeout = setTimeout(() => {
             setActiveIndex((prev) => (prev + 1) % MAP_NETWORK_DATA.length);
-        }, 2500); 
-        return () => clearInterval(timer);
-    }, [isHovered]);
+        }, delay);
+
+        return () => clearTimeout(timeout);
+    }, [activeIndex, isHovered]);
     const [activeChat, setActiveChat] = useState<number | null>(null);
     const [showChat, setShowChat] = useState(false);
     const [aiAssistantOpen, setAiAssistantOpen] = useState(false); 
@@ -609,7 +615,10 @@ export default function Page() {
                                 animate={{ 
                                     pathLength: (activeIndex) / (MAP_NETWORK_DATA.length - 1) 
                                 }}
-                                transition={{ duration: 1.5, ease: "easeInOut" }}
+                                transition={{ 
+                                    duration: activeIndex === 0 ? 0 : 1.5, 
+                                    ease: "easeInOut" 
+                                }}
                                 className="drop-shadow-[0_0_8px_rgba(251,191,36,0.4)]"
                             />
                             
@@ -659,21 +668,7 @@ export default function Page() {
                                             {city.name}
                                         </motion.text>
 
-                                        <AnimatePresence>
-                                            {city.name.includes("Australia") && (hoveredCity === city.name || isCurrent) && (
-                                                <motion.g 
-                                                    initial={{ opacity: 0, y: 10 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    exit={{ opacity: 0, y: 10 }}
-                                                    transform={`translate(${city.x - 70}, ${city.y - 45})`}
-                                                >
-                                                    <rect width="140" height="22" rx="11" fill="white" className="shadow-lg border border-slate-100" />
-                                                    <text x="70" y="14" textAnchor="middle" className="text-[10px] font-bold fill-amber-500 uppercase tracking-tighter">
-                                                        Remote · SuperX
-                                                    </text>
-                                                </motion.g>
-                                            )}
-                                        </AnimatePresence>
+                                        {/* Tooltip removed as requested */}
                                     </g>
                                 );
                             })}
