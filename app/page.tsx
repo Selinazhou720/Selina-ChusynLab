@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 // ── Typewriter Hook (60ms/char, 1.5s pause) ───────────────────────────────────
 function useLoopTypewriter(text: string, typeSpeed = 60, pauseMs = 1500, clearSpeed = 30) {
@@ -240,7 +241,18 @@ export default function Page() {
     const typewriter = useLoopTypewriter("WELCOME TO MY CHANNEL 🐰", 60, 1500);
     const [projLang, setProjLang] = useState<'en' | 'zh'>('en');
     const [expandedProject, setExpandedProject] = useState<string | null>("Personal Content IP (Xiaohongshu & Douyin)");
+    const [activeIndex, setActiveIndex] = useState(0);
+    const [isHovered, setIsHovered] = useState(false);
     const [hoveredCity, setHoveredCity] = useState<string | null>(null);
+
+    // ── Auto-Loop Footprints logic ──────────────────────────────────────────────
+    useEffect(() => {
+        if (isHovered) return;
+        const timer = setInterval(() => {
+            setActiveIndex((prev) => (prev + 1) % MAP_NETWORK_DATA.length);
+        }, 2500); 
+        return () => clearInterval(timer);
+    }, [isHovered]);
     const [activeChat, setActiveChat] = useState<number | null>(null);
     const [showChat, setShowChat] = useState(false);
     const [aiAssistantOpen, setAiAssistantOpen] = useState(false); 
@@ -571,50 +583,43 @@ export default function Page() {
                         <p className="text-sm text-[#64748b] font-inter">My Way, My World</p>
                     </div>
 
-                    <div className="relative w-full aspect-[2.2/1] bg-white/70 backdrop-blur-md rounded-[20px] border-[1.5px] border-[#0f172a]/10 shadow-[0_10px_30px_rgba(0,0,0,0.04)] overflow-hidden group p-8">
+                    <div 
+                        onMouseEnter={() => setIsHovered(true)}
+                        onMouseLeave={() => setIsHovered(false)}
+                        className="relative w-full aspect-[2.2/1] bg-white/70 backdrop-blur-md rounded-[20px] border-[1.5px] border-[#0f172a]/10 shadow-[0_10px_30px_rgba(0,0,0,0.04)] overflow-hidden group p-8"
+                    >
                         <svg viewBox="0 0 800 300" className="absolute inset-0 w-full h-full overflow-visible z-10 p-12">
-                            <defs>
-                                <style>{`
-                                    @keyframes footprintDraw {
-                                        0% { stroke-dashoffset: 250; }
-                                        100% { stroke-dashoffset: 0; }
-                                    }
-                                    @keyframes nodeActivate {
-                                        0% { fill: #d1d5db; transform: scale(1); }
-                                        100% { fill: #fbbf24; transform: scale(1.1); filter: drop-shadow(0 0 6px rgba(251,191,36,0.5)); }
-                                    }
-                                    @keyframes labelAppear {
-                                        from { opacity: 0; transform: translateX(-5px); }
-                                        to { opacity: 1; transform: translateX(0); }
-                                    }
-                                    .f-path { stroke-dasharray: 250; stroke-dashoffset: 250; }
-                                    .f-node { transform-origin: center; animation-fill-mode: forwards; transition: transform 0.3s ease; }
-                                `}</style>
-                            </defs>
-
-                            {/* Base Path (Inactive) */}
+                            {/* Base Path (Grey Line) */}
                             <path 
                                 d="M 120,240 C 200,220 250,210 300,200 S 400,220 470,210 S 620,160 700,140" 
                                 fill="none" 
-                                stroke="#e5e7eb" 
-                                strokeWidth="2" 
+                                stroke="#f1f5f9" 
+                                strokeWidth="2.5" 
                                 strokeLinecap="round" 
-                                className="opacity-40"
                             />
 
-                            {/* Sequential Paths */}
-                            <path d="M 120,240 C 200,220 250,210 300,200" fill="none" stroke="#fbbf24" strokeWidth="2.2" strokeLinecap="round" className="f-path" style={{ animation: 'footprintDraw 0.6s ease forwards 0.6s' }} />
-                            <path d="M 300,200 S 400,220 470,210" fill="none" stroke="#fbbf24" strokeWidth="2.2" strokeLinecap="round" className="f-path" style={{ animation: 'footprintDraw 0.8s ease forwards 1.8s' }} />
-                            <path d="M 470,210 S 620,160 700,140" fill="none" stroke="#fbbf24" strokeWidth="2.2" strokeLinecap="round" className="f-path" style={{ animation: 'footprintDraw 1s ease forwards 3s' }} />
+                            {/* Active Path (Framer Motion) */}
+                            <motion.path 
+                                d="M 120,240 C 200,220 250,210 300,200 S 400,220 470,210 S 620,160 700,140" 
+                                fill="none" 
+                                stroke="#fbbf24" 
+                                strokeWidth="2.5" 
+                                strokeLinecap="round"
+                                initial={{ pathLength: 0 }}
+                                animate={{ 
+                                    pathLength: (activeIndex) / (MAP_NETWORK_DATA.length - 1) 
+                                }}
+                                transition={{ duration: 1.5, ease: "easeInOut" }}
+                                className="drop-shadow-[0_0_8px_rgba(251,191,36,0.4)]"
+                            />
                             
                             {/* Future Extension (Dashed) */}
-                            <path d="M 700,140 C 730,132 760,128 780,125" fill="none" stroke="#fbbf24" strokeWidth="2" strokeLinecap="round" strokeDasharray="4 4" className="opacity-30" style={{ animation: 'footprintDraw 0.6s ease forwards 4.2s' }} />
+                            <path d="M 700,140 C 730,132 760,128 780,125" fill="none" stroke="#fbbf24" strokeWidth="2" strokeLinecap="round" strokeDasharray="4 4" className="opacity-20" />
 
                             {/* Nodes & Labels */}
                             {MAP_NETWORK_DATA.map((city, idx) => {
-                                const delays = [0.2, 1.4, 2.6, 3.8];
-                                const delay = delays[idx];
-                                const isAustralia = city.name.includes("Australia");
+                                const isActive = idx <= activeIndex;
+                                const isCurrent = idx === activeIndex;
                                 
                                 return (
                                     <g 
@@ -623,36 +628,52 @@ export default function Page() {
                                         onMouseLeave={() => setHoveredCity(null)}
                                         className="cursor-pointer"
                                     >
-                                        <circle 
+                                        <motion.circle 
                                             cx={city.x} 
                                             cy={city.y} 
-                                            r="7"
-                                            className="f-node"
-                                            style={{ animation: `nodeActivate 0.5s ease forwards ${delay}s`, fill: '#d1d5db' }}
+                                            initial={{ r: 5, fill: '#e2e8f0' }}
+                                            animate={{ 
+                                                r: isCurrent ? 8 : (isActive ? 6 : 5),
+                                                fill: isActive ? '#fbbf24' : '#e2e8f0',
+                                                scale: isCurrent ? [1, 1.2, 1] : 1
+                                            }}
+                                            transition={{ 
+                                                duration: isCurrent ? 1 : 0.4,
+                                                repeat: isCurrent ? Infinity : 0
+                                            }}
+                                            className={isActive ? 'drop-shadow-[0_0_10px_rgba(251,191,36,0.6)]' : ''}
                                         />
-                                        <text 
+                                        
+                                        <motion.text 
                                             x={city.x + 15} 
                                             y={city.y + 5} 
-                                            className={`text-base font-semibold fill-[#334155] tracking-tight transition-all duration-300 ${
-                                                hoveredCity === city.name ? 'fill-[#fbbf24] scale-105' : ''
-                                            }`}
-                                            style={{ 
-                                                animation: `labelAppear 0.6s ease forwards ${delay}s`, 
-                                                opacity: 0,
-                                                transformOrigin: `${city.x}px ${city.y}px`
+                                            initial={{ opacity: 0, x: -5 }}
+                                            animate={{ 
+                                                opacity: isActive ? 1 : 0.3,
+                                                x: isActive ? 0 : -5,
+                                                fill: isCurrent ? '#fbbf24' : (isActive ? '#334155' : '#94a3b8'),
+                                                fontWeight: isCurrent ? 800 : (isActive ? 600 : 400)
                                             }}
+                                            className="text-base tracking-tight pointer-events-none"
                                         >
                                             {city.name}
-                                        </text>
+                                        </motion.text>
 
-                                        {isAustralia && hoveredCity === city.name && (
-                                            <g transform={`translate(${city.x - 70}, ${city.y - 45})`}>
-                                                <rect width="140" height="22" rx="11" fill="white" className="shadow-lg border border-slate-100" />
-                                                <text x="70" y="14" textAnchor="middle" className="text-[10px] font-bold fill-amber-500 uppercase tracking-tighter">
-                                                    Remote · SuperX
-                                                </text>
-                                            </g>
-                                        )}
+                                        <AnimatePresence>
+                                            {city.name.includes("Australia") && (hoveredCity === city.name || isCurrent) && (
+                                                <motion.g 
+                                                    initial={{ opacity: 0, y: 10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    exit={{ opacity: 0, y: 10 }}
+                                                    transform={`translate(${city.x - 70}, ${city.y - 45})`}
+                                                >
+                                                    <rect width="140" height="22" rx="11" fill="white" className="shadow-lg border border-slate-100" />
+                                                    <text x="70" y="14" textAnchor="middle" className="text-[10px] font-bold fill-amber-500 uppercase tracking-tighter">
+                                                        Remote · SuperX
+                                                    </text>
+                                                </motion.g>
+                                            )}
+                                        </AnimatePresence>
                                     </g>
                                 );
                             })}
